@@ -8,7 +8,7 @@ smite_api = Smite(DevId, AuthKey)
 
 
 def version_project():
-    return 'Smite Live Match Check: beta_0.4'
+    return 'Smite Live Match Check: beta 0.4.1'
 
 
 P_sg.ChangeLookAndFeel('Dark')
@@ -18,18 +18,18 @@ try:
         list_id = pickle.load(f)
 except FileNotFoundError:
     list_id = [['1_Profile:', 'iforvard', '9236315']]
-stat = version_project()
-id_player = 'Need to add player ID'
+text_line_1 = version_project()
+text_line_2 = 'Need to add player ID'
 tmp_id = '0'
 hide_loc = (0, 0)
 
 layout = [
-    [P_sg.T(stat, key='ST', size=(100, 1), auto_size_text=False),
+    [P_sg.T(text_line_1, key='ST', size=(100, 1), auto_size_text=False),
      P_sg.Button('', image_filename='data/hide.png', image_size=(30, 30), key='hide', border_width=False,
                  button_color=('gray25', 'gray25')),
      P_sg.Button('', image_filename='data/Exit.png', key='Exit', image_size=(30, 30), border_width=False,
                  button_color=('gray25', 'gray25'))],
-    [P_sg.T(id_player, key='line2', size=(100, 1), auto_size_text=False),
+    [P_sg.T(text_line_2, key='line2', size=(100, 1), auto_size_text=False),
      P_sg.Button('', key='CheckMatch', image_filename='data/match.png', image_size=(30, 30), border_width=False,
                  button_color=('gray25', 'gray25')),
      P_sg.Button('', key='Settings', image_filename='data/settings.png', image_size=(30, 30), border_width=False,
@@ -92,31 +92,30 @@ while True:  # Event Loop App
         if tmp_id != '0':
             st = smite_api.get_player_status(player_id=tmp_id)[0]['status_string']
             if st == 'In Game':
-                match_idm = smite_api.get_player_status(tmp_id)[0]['Match']
-                match_idm = smite_api.get_match_player_details(str(match_idm))
-                t2 = ''
-                t1 = ''
-                for i in range(len(match_idm)):
-                    if match_idm[i]['taskForce'] == 1:
-                        t1 += match_idm[i]['GodName'] + ': ' + str(match_idm[i]['Account_Level']) + '(' + str(
-                            match_idm[i]['Mastery_Level']) + '); '
+                match_id = smite_api.get_player_status(tmp_id)[0]['Match']
+                match_id = smite_api.get_match_player_details(match_id)
+                team1 = ''
+                team2 = ''
+                for statistic in match_id:
+                    data = f"{statistic['GodName']}:{statistic['Account_Level']}({statistic['Mastery_Level']}); "
+                    if statistic['taskForce'] == 1:
+                        team1 += data
                     else:
-                        t2 += match_idm[i]['GodName'] + ': ' + str(match_idm[i]['Account_Level']) + '(' + str(
-                            match_idm[i]['Mastery_Level']) + '); '
+                        team2 += data
 
-                stat = t1
-                id_player = t2
-                window.FindElement('ST').Update(stat)
-                window.FindElement('line2').Update(id_player)
+                text_line_1 = team2
+                text_line_2 = team1
+                window.FindElement('ST').Update(text_line_1)
+                window.FindElement('line2').Update(text_line_2)
 
             else:
-                stat = version_project()
-                window.FindElement('ST').Update(stat)
-                id_player = "Player status must be 'In Game'; " + 'Your status :' + st
-                window.FindElement('line2').Update(id_player)
+                text_line_1 = version_project()
+                window.FindElement('ST').Update(text_line_1)
+                text_line_2 = "Player status must be 'In Game'; " + 'Your status :' + st
+                window.FindElement('line2').Update(text_line_2)
         else:
-            id_player = 'status Player: None, Need to add player ID'
-            window.FindElement('line2').Update(id_player)
+            text_line_2 = 'status Player: None, Need to add player ID'
+            window.FindElement('line2').Update(text_line_2)
 
     if event == 'Settings':
         window.Hide()
@@ -131,10 +130,10 @@ while True:  # Event Loop App
                 if values['COMBO_LIST'][0] == '(':
                     tmp_id = list_id[int(values['COMBO_LIST'][2:values['COMBO_LIST'].index('_')]) - 1][2]
                     tmp_name = list_id[int(values['COMBO_LIST'][2:values['COMBO_LIST'].index('_')]) - 1][1]
-                    id_player = 'Your ID: {}, Name: {}'.format(tmp_id, tmp_name)
-                    window.FindElement('line2').Update(id_player)
-                    stat = version_project()
-                    window.FindElement('ST').Update(stat)
+                    text_line_2 = 'Your ID: {}, Name: {}'.format(tmp_id, tmp_name)
+                    window.FindElement('line2').Update(text_line_2)
+                    text_line_1 = version_project()
+                    window.FindElement('ST').Update(text_line_1)
                     win2_setting.Hide()
                     window.UnHide()
                     break
