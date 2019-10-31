@@ -1,30 +1,31 @@
+import os
+import pickle
 import PySimpleGUI as P_sg
 from HiRezAPI import Smite
-import pickle
-
-DevId = None
-AuthKey = None
-smite_api = Smite(DevId, AuthKey)
 
 
 def version_project():
     return 'Smite Live Match Check: beta 0.4.1'
 
 
+DevId = None
+AuthKey = None
+smite_api = Smite(DevId, AuthKey)
 P_sg.ChangeLookAndFeel('Dark')
 
-try:
-    with open('data/data.pickle', 'rb') as f:  # Open Profile_list
+# Open Profile_list
+if os.path.isfile('data/data.pickle'):
+    with open('data/data.pickle', 'rb') as f:
         list_id = pickle.load(f)
-except FileNotFoundError:
-    list_id = [['1_Profile:', 'iforvard', '9236315']]
+else:
+    list_id = [[0, 'Profile:', 'iforvard', '9236315']]
 text_line_1 = version_project()
-text_line_2 = 'Need to add player ID'
-tmp_id = '0'
+text_line_2 = 'You need to select the player ID in the settings.'
+smite_player_id = None
 hide_loc = (0, 0)
 
 layout = [
-    [P_sg.T(text_line_1, key='ST', size=(100, 1), auto_size_text=False),
+    [P_sg.T(text_line_1, key='line1', size=(100, 1), auto_size_text=False),
      P_sg.Button('', image_filename='data/hide.png', image_size=(30, 30), key='hide', border_width=False,
                  button_color=('gray25', 'gray25')),
      P_sg.Button('', image_filename='data/Exit.png', key='Exit', image_size=(30, 30), border_width=False,
@@ -89,10 +90,10 @@ while True:  # Event Loop App
         break
 
     if event == 'CheckMatch':
-        if tmp_id != '0':
-            status = smite_api.get_player_status(player_id=tmp_id)[0]['status_string']
+        if smite_player_id:
+            status = smite_api.get_player_status(player_id=smite_player_id)[0]['status_string']
             if status == 'In Game':
-                match_id = smite_api.get_player_status(tmp_id)[0]['Match']
+                match_id = smite_api.get_player_status(smite_player_id)[0]['Match']
                 match_id = smite_api.get_match_player_details(match_id)
                 team1 = ''
                 team2 = ''
@@ -105,13 +106,13 @@ while True:  # Event Loop App
 
                 text_line_1 = team2
                 text_line_2 = team1
-                window.FindElement('ST').Update(text_line_1)
+                window.FindElement('line1').Update(text_line_1)
                 window.FindElement('line2').Update(text_line_2)
 
             else:
                 text_line_1 = version_project()
-                window.FindElement('ST').Update(text_line_1)
-                text_line_2 = "Player status must be 'In Game'; " + 'Your status :' + status
+                window.FindElement('line1').Update(text_line_1)
+                text_line_2 = f"Player status must be 'In Game', Your status :{status}"
                 window.FindElement('line2').Update(text_line_2)
         else:
             text_line_2 = 'status Player: None, Need to add player ID'
@@ -127,18 +128,18 @@ while True:  # Event Loop App
                 window.UnHide()
                 break
             if event == 'Save_Settings':
-                if values['COMBO_LIST'][0] == '(':
-                    tmp_id = list_id[int(values['COMBO_LIST'][2:values['COMBO_LIST'].index('_')]) - 1][2]
-                    tmp_name = list_id[int(values['COMBO_LIST'][2:values['COMBO_LIST'].index('_')]) - 1][1]
-                    text_line_2 = 'Your ID: {}, Name: {}'.format(tmp_id, tmp_name)
-                    window.FindElement('line2').Update(text_line_2)
-                    text_line_1 = version_project()
-                    window.FindElement('ST').Update(text_line_1)
-                    win2_setting.Hide()
-                    window.UnHide()
-                    break
+                number_profile = int(values['COMBO_LIST'].split(',')[0].replace('(', ''))
+                smite_player_id = list_id[number_profile][3]
+                profile_player_name = list_id[number_profile][2]
+                text_line_2 = f'Your ID: {smite_player_id}, Name: {profile_player_name}'
+                window.FindElement('line2').Update(text_line_2)
+                text_line_1 = version_project()
+                window.FindElement('line1').Update(text_line_1)
+                win2_setting.Hide()
+                window.UnHide()
+                break
             if event == 'ADD__ID':
-                list_id.append([str(len(list_id) + 1) + '_Profile:', values['_NAME_'], values['_ID_Name_']])
+                list_id.append([len(list_id), "Profile:", values['_NAME_'], values['_ID_Name_']])
                 win2_setting.FindElement('COMBO_LIST').Update(values=list_id)
                 with open('data/data.pickle', 'wb') as f:  # Save Profile_list
                     pickle.dump(list_id, f)
@@ -146,9 +147,10 @@ while True:  # Event Loop App
                 if len(list_id) == 1:
                     pass
                 else:
-                    del list_id[int(values['COMBO_LIST'][2:values['COMBO_LIST'].index('_')]) - 1]
-                    for i in range(len(list_id)):
-                        list_id[i][0] = str(i + 1) + '_Profile:'
+                    number_profile = int(values['COMBO_LIST'].split(',')[0].replace('(', ''))
+                    del list_id[number_profile]
+                    for index, profile in enumerate(list_id):
+                        profile[0] = index
                     win2_setting.FindElement('COMBO_LIST').Update(values=list_id)
                     with open('data/data.pickle', 'wb') as f:  # Save Profile_list
                         pickle.dump(list_id, f)
