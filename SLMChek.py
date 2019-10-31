@@ -5,7 +5,7 @@ from HiRezAPI import Smite
 
 
 def version_project():
-    return 'Smite Live Match Check: beta 0.4.1'
+    return 'Smite Live Match Check: beta 0.4.2'
 
 
 DevId = None
@@ -22,9 +22,8 @@ else:
 text_line_1 = version_project()
 text_line_2 = 'You need to select the player ID in the settings.'
 smite_player_id = None
-hide_loc = (0, 0)
 
-layout = [
+main_screen = [
     [P_sg.T(text_line_1, key='line1', size=(100, 1), auto_size_text=False),
      P_sg.Button('', image_filename='data/hide.png', image_size=(30, 30), key='hide', border_width=False,
                  button_color=('gray25', 'gray25')),
@@ -38,7 +37,7 @@ layout = [
 
 hide_screen = [[P_sg.Text('', size=(1, 2))]]
 
-Settings_Screen = [[P_sg.Text('Settings:')],
+settings_screen = [[P_sg.Text('Settings:')],
                    [P_sg.InputText('Name_Player', key='_NAME_'), P_sg.Text('Name', size=(5, 1))],
                    [P_sg.InputText('ID_Player', key='_ID_Name_'), P_sg.Text('ID', size=(3, 1))],
                    [P_sg.Button('Add', key='ADD__ID', size=(10, 1)),
@@ -50,18 +49,17 @@ Settings_Screen = [[P_sg.Text('Settings:')],
                    [P_sg.T(version_project(), key='About', size=(52, 1),
                            auto_size_text=False)],
                    [P_sg.Text('https://github.com/iforvard')]]
-RKM = ['&Right', ['hide', 'CheckAPI', '!&Click', 'CheckMatch', 'E&xit', 'Settings']]
 
-window = P_sg.Window('',
-                     alpha_channel=0.8,
-                     no_titlebar=True,
-                     grab_anywhere=True,
-                     keep_on_top=True,
-                     location=(None, None),
-                     element_padding=(3, 0),
-                     margins=(2, 0),
-                     border_depth=-False,
-                     use_default_focus=False).Layout(layout)
+win1_main = P_sg.Window('',
+                        alpha_channel=0.8,
+                        no_titlebar=True,
+                        grab_anywhere=True,
+                        keep_on_top=True,
+                        location=(None, None),
+                        element_padding=(3, 0),
+                        margins=(2, 0),
+                        border_depth=-False,
+                        use_default_focus=False).Layout(main_screen)
 
 win3_hide = P_sg.Window('Check',
                         right_click_menu=['&Right', ['BACK']],
@@ -69,7 +67,7 @@ win3_hide = P_sg.Window('Check',
                         no_titlebar=True,
                         grab_anywhere=True,
                         keep_on_top=True,
-                        location=hide_loc).Layout(hide_screen)
+                        location=(0, 0)).Layout(hide_screen)
 win3_hide.Finalize()
 win3_hide.Hide()
 
@@ -77,7 +75,7 @@ win2_setting = P_sg.Window('Check_SLM',
                            no_titlebar=True,
                            alpha_channel=0.9,
                            grab_anywhere=True,
-                           keep_on_top=True).Layout(Settings_Screen)
+                           keep_on_top=True).Layout(settings_screen)
 
 win2_setting.Finalize()
 win2_setting.Hide()
@@ -85,7 +83,7 @@ win2_setting.Hide()
 # if you have operations on elements that must take place before the event loop, do them here
 
 while True:  # Event Loop App
-    event, values = window.Read()
+    event, values = win1_main.Read()
     if event is None or event == 'Exit':
         break
 
@@ -106,37 +104,37 @@ while True:  # Event Loop App
 
                 text_line_1 = team2
                 text_line_2 = team1
-                window.FindElement('line1').Update(text_line_1)
-                window.FindElement('line2').Update(text_line_2)
+                win1_main.FindElement('line1').Update(text_line_1)
+                win1_main.FindElement('line2').Update(text_line_2)
 
             else:
                 text_line_1 = version_project()
-                window.FindElement('line1').Update(text_line_1)
+                win1_main.FindElement('line1').Update(text_line_1)
                 text_line_2 = f"Player status must be 'In Game', Your status :{status}"
-                window.FindElement('line2').Update(text_line_2)
+                win1_main.FindElement('line2').Update(text_line_2)
         else:
             text_line_2 = 'status Player: None, Need to add player ID'
-            window.FindElement('line2').Update(text_line_2)
+            win1_main.FindElement('line2').Update(text_line_2)
 
     if event == 'Settings':
-        window.Hide()
+        win1_main.Hide()
         win2_setting.UnHide()
         event, values = win2_setting.Read()
         while True:  # Event Loop Settings
             if event == 'Cancel':
                 win2_setting.Hide()
-                window.UnHide()
+                win1_main.UnHide()
                 break
             if event == 'Save_Settings':
                 number_profile = int(values['COMBO_LIST'].split(',')[0].replace('(', ''))
                 smite_player_id = list_id[number_profile][3]
                 profile_player_name = list_id[number_profile][2]
                 text_line_2 = f'Your ID: {smite_player_id}, Name: {profile_player_name}'
-                window.FindElement('line2').Update(text_line_2)
+                win1_main.FindElement('line2').Update(text_line_2)
                 text_line_1 = version_project()
-                window.FindElement('line1').Update(text_line_1)
+                win1_main.FindElement('line1').Update(text_line_1)
                 win2_setting.Hide()
-                window.UnHide()
+                win1_main.UnHide()
                 break
             if event == 'ADD__ID':
                 list_id.append([len(list_id), "Profile:", values['_NAME_'], values['_ID_Name_']])
@@ -157,11 +155,11 @@ while True:  # Event Loop App
             event, values = win2_setting.Read()
 
     if event == 'hide':
-        window.Hide()
+        win1_main.Hide()
         win3_hide.UnHide()
         event, values = win3_hide.Read()
         while True:  # Event Loop hide
             if event == 'BACK':
                 win3_hide.Hide()
-                window.UnHide()
+                win1_main.UnHide()
                 break
