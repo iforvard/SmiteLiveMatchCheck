@@ -90,8 +90,8 @@ while True:  # Event Loop App
 
     if event == 'CheckMatch':
         if tmp_id != '0':
-            st = smite_api.get_player_status(player_id=tmp_id)[0]['status_string']
-            if st == 'In Game':
+            status = smite_api.get_player_status(player_id=tmp_id)[0]['status_string']
+            if status == 'In Game':
                 match_id = smite_api.get_player_status(tmp_id)[0]['Match']
                 match_id = smite_api.get_match_player_details(match_id)
                 team1 = ''
@@ -111,7 +111,7 @@ while True:  # Event Loop App
             else:
                 text_line_1 = version_project()
                 window.FindElement('ST').Update(text_line_1)
-                text_line_2 = "Player status must be 'In Game'; " + 'Your status :' + st
+                text_line_2 = "Player status must be 'In Game'; " + 'Your status :' + status
                 window.FindElement('line2').Update(text_line_2)
         else:
             text_line_2 = 'status Player: None, Need to add player ID'
