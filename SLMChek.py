@@ -97,7 +97,7 @@ while True:  # Event Loop App
                 team1 = ''
                 team2 = ''
                 for statistic in match_id:
-                    data = f"{statistic['GodName']}:{statistic['Account_Level']}({statistic['Mastery_Level']}); "
+                    data = f"{statistic['GodName']}:{statistic['Account_Level']}({statistic['Mastery_Level']}) "
                     if statistic['taskForce'] == 1:
                         team1 += data
                     else:
